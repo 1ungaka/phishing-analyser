@@ -1,0 +1,39 @@
+From: "Nedbank Security" <security@nedbank-secure-verify.com>
+Reply-To: phishing@malicious-domain.ru
+Return-Path: <bounce@totally-not-nedbank.xyz>
+To: naledi.dlamini@gmail.com
+Subject: URGENT: Your account has been suspended - Verify your identity now
+Date: Mon, 13 Jul 2026 02:14:33 +0000
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="boundary_main"
+Received: from mail1.totally-not-nedbank.xyz (45.155.205.233) by mx.gmail.com
+Received: from smtp.malicious-domain.ru by mail1.totally-not-nedbank.xyz
+Received: from unknown (185.220.101.45) by smtp.malicious-domain.ru
+
+--boundary_main
+Content-Type: text/plain; charset="utf-8"
+
+Dear Valued Customer,
+
+We have detected unusual activity on your Nedbank account. Your account has been temporarily suspended due to suspicious login attempts.
+
+Act now to verify your identity and restore access before your account is permanently closed.
+
+Click here to confirm your identity:
+http://nedbank-secure-login.totally-not-nedbank.xyz/verify?token=abc123
+
+This is urgent. You have 24 hours to update your information or your account will be closed.
+
+Congratulations - once verified, you will receive a free gift as a loyal customer.
+
+Password reset may be required after verification.
+
+Nedbank Security Team
+
+--boundary_main
+Content-Type: application/zip; name="account_statement.zip"
+Content-Disposition: attachment; filename="account_statement.zip"
+
+UEsDBAoAAAAAAHVPhFgAAAAAAAAAAAAAAAASAAAAYWNjb3VudF9zdGF0ZW1lbnQv
+
+--boundary_main--

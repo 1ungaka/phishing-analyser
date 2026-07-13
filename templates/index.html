@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phishing Email Analyser</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #080f1a;
+      color: #c9d4e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: #0b1525;
+      border-bottom: 1px solid #1a2a3a;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      height: 52px;
+    }
+
+    .nav-brand { font-size: 15px; font-weight: 600; color: #e2eaf4; }
+    .nav-sub { font-size: 12px; color: #5a7a94; margin-left: 12px; }
+
+    .container { padding: 28px; max-width: 1200px; margin: 0 auto; }
+
+    .page-title { font-size: 20px; font-weight: 600; color: #e2eaf4; margin-bottom: 6px; }
+    .page-subtitle { font-size: 13px; color: #5a7a94; margin-bottom: 28px; }
+
+    .card {
+      background: #0d1b2a;
+      border: 1px solid #1a2a3a;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: #5a7a94;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+
+    .upload-area {
+      border: 2px dashed #1a2a3a;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .upload-area:hover { border-color: #1d4ed8; }
+    .upload-area.dragover { border-color: #3b82f6; background: #0f1f30; }
+
+    .upload-icon { font-size: 32px; margin-bottom: 12px; }
+    .upload-text { color: #7a92a8; font-size: 14px; }
+    .upload-text span { color: #3b82f6; cursor: pointer; }
+
+    input[type="file"] { display: none; }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s;
+    }
+
+    .btn-primary { background: #1d4ed8; color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:disabled { background: #1a2a3a; color: #5a7a94; cursor: not-allowed; }
+
+    .threat-banner {
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .threat-critical { background: #1a0808; border: 1px solid #7f1d1d; }
+    .threat-high     { background: #1a1008; border: 1px solid #78350f; }
+    .threat-medium   { background: #08121a; border: 1px solid #1e3a5f; }
+    .threat-low      { background: #081a10; border: 1px solid #14532d; }
+
+    .threat-score {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .score-critical { color: #f87171; }
+    .score-high     { color: #fbbf24; }
+    .score-medium   { color: #60a5fa; }
+    .score-low      { color: #4ade80; }
+
+    .threat-label { font-size: 18px; font-weight: 600; color: #e2eaf4; }
+    .threat-desc  { font-size: 13px; color: #7a92a8; margin-top: 4px; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-critical { background: #3d0f0f; color: #f87171; border: 1px solid #7f1d1d; }
+    .badge-high     { background: #3d2a0a; color: #fbbf24; border: 1px solid #78350f; }
+    .badge-medium   { background: #0f2240; color: #60a5fa; border: 1px solid #1e3a5f; }
+    .badge-low      { background: #0a2a18; color: #4ade80; border: 1px solid #14532d; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 8px 12px; font-size: 11px; color: #5a7a94; text-transform: uppercase; border-bottom: 1px solid #1a2a3a; }
+    td { padding: 10px 12px; border-bottom: 1px solid #111e2e; font-size: 13px; word-break: break-all; }
+    tr:last-child td { border-bottom: none; }
+
+    .finding-row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #111e2e; }
+    .finding-row:last-child { border-bottom: none; }
+    .finding-text { font-size: 13px; color: #c9d4e0; line-height: 1.5; }
+
+    .keyword-tag {
+      display: inline-block;
+      background: #1a2a3a;
+      color: #7a92a8;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      margin: 3px;
+    }
+
+    .header-row { display: flex; padding: 8px 0; border-bottom: 1px solid #111e2e; }
+    .header-row:last-child { border-bottom: none; }
+    .header-key { min-width: 160px; color: #5a7a94; font-size: 12px; }
+    .header-val { color: #c9d4e0; font-size: 13px; word-break: break-all; }
+
+    .pass  { color: #4ade80; }
+    .fail  { color: #f87171; }
+    .warn  { color: #fbbf24; }
+    .none  { color: #5a7a94; }
+
+    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+    .checkbox-row input { width: auto; }
+    .checkbox-row label { font-size: 13px; color: #7a92a8; cursor: pointer; }
+
+    #results { display: none; }
+
+    .spinner {
+      display: none;
+      width: 20px; height: 20px;
+      border: 2px solid #1a2a3a;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-left: 12px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">Phishing Email Analyser</span>
+  <span class="nav-sub">Blue Team Triage Tool</span>
+</nav>
+
+<div class="container">
+  <div class="page-title">Email Triage</div>
+  <div class="page-subtitle">Upload a suspicious .eml file to analyse headers, links, attachments and threat indicators</div>
+
+  <div class="card">
+    <div class="card-title">Upload email file</div>
+    <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+      <div class="upload-icon">&#128394;</div>
+      <div class="upload-text">Drop your .eml file here or <span>browse to upload</span></div>
+      <div id="file-name" style="margin-top:10px;color:#3b82f6;font-size:13px"></div>
+    </div>
+    <input type="file" id="file-input" accept=".eml">
+    <div class="checkbox-row">
+      <input type="checkbox" id="check-vt" checked>
+      <label for="check-vt">Check URLs against VirusTotal (uses API quota)</label>
+    </div>
+    <div style="margin-top:16px;display:flex;align-items:center">
+      <button class="btn btn-primary" id="analyse-btn" onclick="analyseEmail()" disabled>Analyse email</button>
+      <div class="spinner" id="spinner"></div>
+    </div>
+  </div>
+
+  <div id="results">
+    <div id="threat-banner"></div>
+
+    <div id="findings-card" class="card">
+      <div class="card-title">Findings</div>
+      <div id="findings-body"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Header analysis</div>
+        <div id="headers-body"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Spoofing indicators</div>
+        <div id="spoofing-body"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Links extracted</div>
+      <div id="links-body"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Attachments</div>
+        <div id="attachments-body"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Social engineering keywords</div>
+        <div id="keywords-body"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Email body preview</div>
+      <pre id="body-preview" style="font-size:12px;color:#7a92a8;white-space:pre-wrap;line-height:1.6"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+const fileInput = document.getElementById("file-input");
+const analyseBtn = document.getElementById("analyse-btn");
+const uploadArea = document.getElementById("upload-area");
+
+fileInput.addEventListener("change", () => {
+  if (fileInput.files[0]) {
+    document.getElementById("file-name").textContent = fileInput.files[0].name;
+    analyseBtn.disabled = false;
+  }
+});
+
+uploadArea.addEventListener("dragover", e => { e.preventDefault(); uploadArea.classList.add("dragover"); });
+uploadArea.addEventListener("dragleave", () => uploadArea.classList.remove("dragover"));
+uploadArea.addEventListener("drop", e => {
+  e.preventDefault();
+  uploadArea.classList.remove("dragover");
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith(".eml")) {
+    fileInput.files = e.dataTransfer.files;
+    document.getElementById("file-name").textContent = file.name;
+    analyseBtn.disabled = false;
+  }
+});
+
+async function analyseEmail() {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  analyseBtn.disabled = true;
+  document.getElementById("spinner").style.display = "inline-block";
+  document.getElementById("results").style.display = "none";
+
+  const formData = new FormData();
+  formData.append("email_file", file);
+  formData.append("check_vt", document.getElementById("check-vt").checked ? "true" : "false");
+
+  const res = await fetch("/api/analyse", { method: "POST", body: formData });
+  const data = await res.json();
+
+  document.getElementById("spinner").style.display = "none";
+  analyseBtn.disabled = false;
+
+  if (data.error) {
+    alert("Error: " + data.error);
+    return;
+  }
+
+  renderResults(data);
+  document.getElementById("results").style.display = "block";
+  document.getElementById("results").scrollIntoView({ behavior: "smooth" });
+}
+
+function renderResults(data) {
+  const t = data.threat;
+  const levelClass = t.threat_level.toLowerCase();
+  const scoreClass = "score-" + levelClass;
+
+  const descriptions = {
+    CRITICAL: "High confidence phishing attempt. Do not interact with this email.",
+    HIGH: "Strong indicators of a phishing attempt. Treat with caution.",
+    MEDIUM: "Some suspicious indicators present. Further investigation recommended.",
+    LOW: "Few or no phishing indicators detected. May be legitimate.",
+  };
+
+  document.getElementById("threat-banner").innerHTML = `
+    <div class="threat-banner threat-${levelClass}">
+      <div class="threat-score ${scoreClass}">${t.score}</div>
+      <div>
+        <div class="threat-label">${t.threat_level} THREAT</div>
+        <div class="threat-desc">${descriptions[t.threat_level]}</div>
+      </div>
+    </div>
+  `;
+
+  const findingsHtml = t.findings.map(f => `
+    <div class="finding-row">
+      <span class="badge badge-${f.severity.toLowerCase()}">${f.severity}</span>
+      <span class="finding-text">${f.finding}</span>
+    </div>
+  `).join("");
+  document.getElementById("findings-body").innerHTML = findingsHtml || "<p style='color:#5a7a94'>No findings.</p>";
+
+  const h = data.headers;
+  const spfStatus = h.spf_pass === true ? '<span class="pass">PASS</span>' : h.spf_pass === false ? '<span class="fail">FAIL</span>' : '<span class="none">Not present</span>';
+  const dkimStatus = h.dkim_pass ? '<span class="pass">Present</span>' : '<span class="fail">Not present</span>';
+
+  document.getElementById("headers-body").innerHTML = `
+    <div class="header-row"><div class="header-key">From</div><div class="header-val">${h.from}</div></div>
+    <div class="header-row"><div class="header-key">Reply-To</div><div class="header-val">${h.reply_to || '<span class="none">None</span>'}</div></div>
+    <div class="header-row"><div class="header-key">Return-Path</div><div class="header-val">${h.return_path || '<span class="none">None</span>'}</div></div>
+    <div class="header-row"><div class="header-key">Subject</div><div class="header-val">${h.subject}</div></div>
+    <div class="header-row"><div class="header-key">Date</div><div class="header-val">${h.date}</div></div>
+    <div class="header-row"><div class="header-key">Mail hops</div><div class="header-val">${h.received_count}</div></div>
+    <div class="header-row"><div class="header-key">SPF</div><div class="header-val">${spfStatus}</div></div>
+    <div class="header-row"><div class="header-key">DKIM</div><div class="header-val">${dkimStatus}</div></div>
+    <div class="header-row"><div class="header-key">Domain mismatch</div><div class="header-val">${h.domain_mismatch ? '<span class="fail">Yes</span>' : '<span class="pass">No</span>'}</div></div>
+  `;
+
+  const spoofingHtml = data.spoofing.length
+    ? data.spoofing.map(s => `<div class="finding-row"><span class="badge badge-high">FLAG</span><span class="finding-text">${s}</span></div>`).join("")
+    : '<p style="color:#4ade80">No spoofing indicators detected.</p>';
+  document.getElementById("spoofing-body").innerHTML = spoofingHtml;
+
+  if (data.links.length) {
+    document.getElementById("links-body").innerHTML = `
+      <table>
+        <thead><tr><th>URL</th><th>Domain</th><th>Suspicious</th><th>VT Result</th></tr></thead>
+        <tbody>
+          ${data.links.map(l => {
+            const vt = l.vt_result;
+            let vtCell = '<span class="none">Not checked</span>';
+            if (vt) {
+              if (vt.error) vtCell = `<span class="warn">${vt.error}</span>`;
+              else if (vt.malicious > 0) vtCell = `<span class="fail">${vt.malicious} malicious</span>`;
+              else vtCell = `<span class="pass">Clean</span>`;
+            }
+            return `<tr>
+              <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">${l.url}</td>
+              <td>${l.domain}</td>
+              <td>${l.suspicious ? '<span class="fail">Yes</span>' : '<span class="pass">No</span>'}</td>
+              <td>${vtCell}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+  } else {
+    document.getElementById("links-body").innerHTML = '<p style="color:#5a7a94">No links found.</p>';
+  }
+
+  if (data.attachments.length) {
+    document.getElementById("attachments-body").innerHTML = `
+      <table>
+        <thead><tr><th>Filename</th><th>Type</th><th>Risk</th></tr></thead>
+        <tbody>
+          ${data.attachments.map(a => `<tr>
+            <td>${a.filename}</td>
+            <td>${a.content_type}</td>
+            <td>${a.dangerous ? '<span class="fail">Dangerous</span>' : '<span class="pass">Low risk</span>'}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    `;
+  } else {
+    document.getElementById("attachments-body").innerHTML = '<p style="color:#5a7a94">No attachments found.</p>';
+  }
+
+  document.getElementById("keywords-body").innerHTML = data.keywords_found.length
+    ? data.keywords_found.map(k => `<span class="keyword-tag">${k}</span>`).join("")
+    : '<p style="color:#5a7a94">No suspicious keywords detected.</p>';
+
+  document.getElementById("body-preview").textContent = data.body_preview || "No plain text body found.";
+}
+</script>
+</body>
+</html>
